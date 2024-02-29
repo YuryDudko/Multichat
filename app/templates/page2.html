@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат</title>
+    <style>
+        
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+
+        input {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 100%;
+        }
+
+        button{
+            padding: 8px;
+            background-color: #00ffdd;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div id="header_style">
+        <h1>Многопользовательский чат</h1>
+    </div>
+    
+    <div id="chat">
+        <!-- Список сообщений будет обновляться динамически -->
+    </div>
+    <form id="messageForm">
+        <!--<input type="text" id="username" placeholder="Ваше имя"> -->
+        <input type="text" id="message" placeholder="Введите сообщение" required>
+        <button type="submit">Отправить</button>
+    </form>
+
+    <a href="{{ url_for('index') }}">
+        <button  type="submit"> Назад</button>
+    </a>
+    
+
+    <script>
+        // Функция для обновления списка сообщений
+        /*function updateChat() {
+            fetch('/get_messages')
+            .then(response => response.json())
+            .then(data => {
+                // Очистим текущий список сообщений
+                document.getElementById('chat').innerHTML = '';
+                // Добавим новые сообщения в список
+                data.messages.forEach(message => {
+                    var chatDiv = document.getElementById('chat');
+                    var newMessage = document.createElement('p');
+                    newMessage.innerHTML = '<strong>' + message.username + ':</strong> ' + message.message;
+                    chatDiv.appendChild(newMessage);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }*/
+
+        function updateChat() {
+            fetch('/get_messages')
+            .then(response => response.json())
+            .then(data => {
+                // Очистим текущий список сообщений
+                document.getElementById('chat').innerHTML = '';
+                // Добавим новые сообщения в список
+                data.messages.forEach(message => {
+                    var chatDiv = document.getElementById('chat');
+                    var newMessage = document.createElement('p');
+                    //newMessage.innerHTML = '<strong>' + message.username + ':</strong> ' + message.message;
+                    newMessage.innerHTML = `<strong>${message.username}:</strong> ${message.message} <span class="time">${formatTime(message.time)}</span>`;
+                
+
+                    chatDiv.appendChild(newMessage);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Вызываем функцию updateChat() каждую секунду
+        setInterval(updateChat, 1000);
+
+        // Функция для отправки сообщения
+        document.getElementById('messageForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            sendMessage();
+            const messageInput = document.getElementById('message');
+            messageInput.value = '';
+        });
+
+        /*function sendMessage() {
+            //var username = document.getElementById('username').value;
+            var message = document.getElementById('message').value;
+
+            fetch('/send_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 'username': username, 'message': message }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error('Error:', data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }*/
+
+        function sendMessage() {
+            //var username = document.getElementById('username').value;
+            var message = document.getElementById('message').value;
+            var time_val = Date.now()
+
+            fetch('/send_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({'message': message , 'time': time_val }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error('Error:', data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        /*function formatTime(timestamp) {
+            const numericTimestamp = typeof timestamp === 'string' ? parseInt(timestamp, 10) : timestamp;
+            const date = new Date(numericTimestamp);
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const seconds = date.getSeconds().toString().padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }*/
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const hours = date.getHours().toString();
+            const minutes = date.getMinutes().toString();
+            const seconds = date.getSeconds().toString();
+            return `${hours}:${minutes}:${seconds}`;
+        }
+    </script>
+</body>
+</html>
